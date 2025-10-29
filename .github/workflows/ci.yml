@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - feature/init-wd-example
     tags:
       - "v*.*.*"
   pull_request:
