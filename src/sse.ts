@@ -74,7 +74,7 @@ export class SseBroker {
     sseClientsGauge.inc();
 
     res.write(`event: ready\n`);
-    res.write(`data: {"session":"${sessionId}"}\n\n`);
+    res.write(`data: {"session":${JSON.stringify(sessionId)}}\n\n`);
 
     res.on("close", () => {
       this.removeClient(sessionId);
