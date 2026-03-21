@@ -2,6 +2,7 @@ import http from "node:http";
 import https from "node:https";
 
 import express, { Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import { Logger } from "pino";
 
@@ -232,7 +233,24 @@ export function createServer(
     sseBroker.attach(sessionId, res);
   });
 
-  app.post("/messages", async (req, res) => {
+  const messagesRateLimiter = rateLimit({
+    windowMs: config.rateLimitWindowMs,
+    max: config.rateLimitMax,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, res) => {
+      res.status(429).json({
+        jsonrpc: "2.0",
+        id: null,
+        error: {
+          code: -32005,
+          message: "Rate limit exceeded. Try again later.",
+        },
+      });
+    },
+  });
+
+  app.post("/messages", messagesRateLimiter, async (req, res) => {
     let envelope: MessageEnvelope;
 
     try {
