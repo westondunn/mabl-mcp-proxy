@@ -18,6 +18,8 @@ export interface MablCliOptions {
   apiKey: string;
   logger: Logger;
   restartDelayMs?: number;
+  maxRestarts?: number;
+  backoffCapMs?: number;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -26,6 +28,8 @@ export class MablCli extends EventEmitter {
   private stdoutBuffer = "";
   private restarting = false;
   private restarts = 0;
+  private consecutiveFailures = 0;
+  private circuitOpen = false;
   private closed = false;
   private lastMessageTimestamp: number | null = null;
 
@@ -52,6 +56,10 @@ export class MablCli extends EventEmitter {
 
   getRestartCount(): number {
     return this.restarts;
+  }
+
+  isCircuitOpen(): boolean {
+    return this.circuitOpen;
   }
 
   async send(payload: unknown): Promise<void> {
@@ -128,6 +136,8 @@ export class MablCli extends EventEmitter {
 
     this.child = child;
     this.restarting = false;
+    this.consecutiveFailures = 0;
+    this.circuitOpen = false;
 
     child.stdout.setEncoding("utf-8");
     child.stdout.on("data", (chunk: string) => {
@@ -167,13 +177,31 @@ export class MablCli extends EventEmitter {
       return;
     }
 
+    const maxRestarts = this.options.maxRestarts ?? 10;
+    this.consecutiveFailures += 1;
+
+    if (this.consecutiveFailures > maxRestarts) {
+      this.circuitOpen = true;
+      this.options.logger.fatal(
+        { consecutiveFailures: this.consecutiveFailures, maxRestarts },
+        "Circuit breaker open: mabl CLI restart attempts exhausted. No further restarts will be attempted.",
+      );
+      return;
+    }
+
     this.restarting = true;
-    const delayMs = this.options.restartDelayMs ?? 5_000;
+    const baseDelayMs = this.options.restartDelayMs ?? 5_000;
+    const backoffCapMs = this.options.backoffCapMs ?? 300_000;
+    const backoffMs = Math.min(
+      baseDelayMs * 2 ** (this.consecutiveFailures - 1),
+      backoffCapMs,
+    );
+
     this.options.logger.info(
-      { delayMs },
+      { delayMs: backoffMs, attempt: this.consecutiveFailures, maxRestarts },
       "Attempting to restart mabl CLI after delay.",
     );
-    await delay(delayMs);
+    await delay(backoffMs);
     this.restarts += 1;
 
     try {
