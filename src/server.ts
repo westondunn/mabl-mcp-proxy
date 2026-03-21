@@ -131,6 +131,7 @@ export function createServer(
   const sseBroker = new SseBroker(logger.child({ component: "sse" }), {
     heartbeatIntervalMs: config.heartbeatIntervalMs,
     idleTimeoutMs: config.idleTimeoutMs,
+    maxClients: config.maxSseClients,
   });
 
   const pendingRequests = new Map<string, PendingRequest>();

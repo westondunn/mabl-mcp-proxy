@@ -14,6 +14,7 @@ export interface AppConfig {
   requestTimeoutMs: number;
   heartbeatIntervalMs: number;
   idleTimeoutMs: number;
+  maxSseClients: number;
   mablApiKey: string;
   mablCliVersion?: string;
   tls?: TlsConfig;
@@ -53,6 +54,7 @@ export async function loadConfig(): Promise<AppConfig> {
     15_000,
   );
   const idleTimeoutMs = parseNumber(process.env.IDLE_TIMEOUT_MS, 120_000);
+  const maxSseClients = parseNumber(process.env.MAX_SSE_CLIENTS, 100);
   const logLevel = process.env.LOG_LEVEL ?? "info";
   const prettyLogs = (process.env.PRETTY_LOGS ?? "").toLowerCase() === "true";
   const mablCliVersion = process.env.MABL_CLI_VERSION || undefined;
@@ -84,6 +86,7 @@ export async function loadConfig(): Promise<AppConfig> {
     requestTimeoutMs,
     heartbeatIntervalMs,
     idleTimeoutMs,
+    maxSseClients,
     mablApiKey,
     mablCliVersion,
     tls,

@@ -13,6 +13,7 @@ interface SseClient {
 export interface SseBrokerOptions {
   heartbeatIntervalMs: number;
   idleTimeoutMs: number;
+  maxClients: number;
 }
 
 export class SseBroker {
@@ -43,8 +44,21 @@ export class SseBroker {
     this.heartbeatTimer.unref();
   }
 
+  isFull(): boolean {
+    return this.clients.size >= this.options.maxClients;
+  }
+
   attach(sessionId: string, res: Response): void {
     const existing = this.clients.get(sessionId);
+    if (!existing && this.isFull()) {
+      this.logger.warn(
+        { sessionId, maxClients: this.options.maxClients },
+        "Max SSE client limit reached, rejecting connection.",
+      );
+      res.status(503).json({ error: "Max SSE client limit reached." });
+      return;
+    }
+
     if (existing) {
       this.logger.warn(
         { sessionId },
