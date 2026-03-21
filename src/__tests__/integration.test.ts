@@ -82,7 +82,10 @@ function testConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     requestTimeoutMs: 2_000, // short for tests
     heartbeatIntervalMs: 60_000, // long so it doesn't fire during tests
     idleTimeoutMs: 60_000,
+    maxSseClients: 100,
     mablApiKey: "test-key",
+    rateLimitWindowMs: 60_000,
+    rateLimitMax: 1000,
     ...overrides,
   };
 }
