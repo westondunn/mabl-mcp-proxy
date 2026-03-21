@@ -16,6 +16,8 @@ export interface AppConfig {
   idleTimeoutMs: number;
   mablApiKey: string;
   tls?: TlsConfig;
+  rateLimitWindowMs: number;
+  rateLimitMax: number;
 }
 
 function parseNumber(value: string | undefined, fallback: number): number {
@@ -66,6 +68,12 @@ export async function loadConfig(): Promise<AppConfig> {
     );
   }
 
+  const rateLimitWindowMs = parseNumber(
+    process.env.RATE_LIMIT_WINDOW_MS,
+    60_000,
+  );
+  const rateLimitMax = parseNumber(process.env.RATE_LIMIT_MAX, 100);
+
   return {
     port,
     host,
@@ -76,5 +84,7 @@ export async function loadConfig(): Promise<AppConfig> {
     idleTimeoutMs,
     mablApiKey,
     tls,
+    rateLimitWindowMs,
+    rateLimitMax,
   };
 }

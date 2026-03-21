@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "express-rate-limit": "^8.3.1",
     "pino": "^9.1.0",
     "pino-http": "^10.1.0",
     "pino-pretty": "^11.1.0",
