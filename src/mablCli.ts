@@ -14,6 +14,8 @@ type EventKey = keyof CliEvents;
 
 type Listener<T extends EventKey> = (...args: CliEvents[T]) => void;
 
+const DEFAULT_CLI_VERSION = "2.103.9";
+
 export interface MablCliOptions {
   apiKey: string;
   logger: Logger;
@@ -21,6 +23,7 @@ export interface MablCliOptions {
   maxRestarts?: number;
   backoffCapMs?: number;
   env?: NodeJS.ProcessEnv;
+  cliVersion?: string;
 }
 
 export class MablCli extends EventEmitter {
@@ -33,8 +36,12 @@ export class MablCli extends EventEmitter {
   private closed = false;
   private lastMessageTimestamp: number | null = null;
 
+  private readonly cliPackage: string;
+
   constructor(private readonly options: MablCliOptions) {
     super();
+    const version = options.cliVersion ?? DEFAULT_CLI_VERSION;
+    this.cliPackage = `@mablhq/mabl-cli@${version}`;
   }
 
   async start(): Promise<void> {
@@ -105,7 +112,7 @@ export class MablCli extends EventEmitter {
 
     const args = [
       "--yes",
-      "@mablhq/mabl-cli@latest",
+      this.cliPackage,
       "mabl",
       "auth",
       "activate-key",
@@ -122,7 +129,7 @@ export class MablCli extends EventEmitter {
 
     const child = spawn(
       "npx",
-      ["--yes", "@mablhq/mabl-cli@latest", "mcp", "start"],
+      ["--yes", this.cliPackage, "mcp", "start"],
       {
         env: {
           ...process.env,

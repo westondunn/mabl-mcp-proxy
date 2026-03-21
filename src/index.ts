@@ -13,6 +13,7 @@ async function main() {
   const cli = new MablCli({
     apiKey: config.mablApiKey,
     logger: logger.child({ component: "mablCli" }),
+    cliVersion: config.mablCliVersion,
   });
 
   await cli.start();

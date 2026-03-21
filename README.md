@@ -1,6 +1,6 @@
 # mabl MCP Proxy
 
-Containerized HTTPS proxy that exposes the mabl MCP stdio server over the HTTP transport expected by ChatGPT. The proxy runs a long-lived instance of `@mablhq/mabl-cli@latest`, forwards MCP JSON-RPC payloads over stdio, and streams responses back to ChatGPT via Server-Sent Events.
+Containerized HTTPS proxy that exposes the mabl MCP stdio server over the HTTP transport expected by ChatGPT. The proxy runs a long-lived instance of `@mablhq/mabl-cli` (pinned to a known-good version by default), forwards MCP JSON-RPC payloads over stdio, and streams responses back to ChatGPT via Server-Sent Events.
 
 ## Features
 - TLS-terminated HTTPS server (falls back to HTTP only when `ALLOW_HTTP=true`).
@@ -25,6 +25,7 @@ Containerized HTTPS proxy that exposes the mabl MCP stdio server over the HTTP t
 | `REQUEST_TIMEOUT_MS` | | `45000` | Timeout for pending MCP requests. |
 | `HEARTBEAT_INTERVAL_MS` | | `15000` | Interval between SSE heartbeat comments. |
 | `IDLE_TIMEOUT_MS` | | `120000` | Disconnect SSE clients after this idle period. |
+| `MABL_CLI_VERSION` | | `2.103.9` | Pinned `@mablhq/mabl-cli` version. Override to upgrade or roll back. |
 
 > \* `TLS_CERT_PATH` and `TLS_KEY_PATH` must be supplied unless `ALLOW_HTTP=true`.
 
@@ -89,7 +90,7 @@ ChatGPT will:
 2. POST MCP JSON-RPC envelopes to `/messages`.
 3. Receive translated responses/events over the SSE connection.
 
-Ensure the container can reach the Internet so `npx @mablhq/mabl-cli@latest mcp start` can download and update the CLI when needed.
+Ensure the container can reach the Internet so `npx @mablhq/mabl-cli mcp start` can download the CLI when needed.
 
 ## Continuous Delivery
 
